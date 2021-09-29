@@ -1,0 +1,86 @@
+services:
+    mongo:
+        image: "mongo:latest"
+        hostname: "workspace-mongo"
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongo-db:/data/db
+            - mongo-config:/data/configdb
+        environment:
+            - MONGO_INITDB_ROOT_PASSWORD=OyDaYglYSIoUnDylIcAte
+            - MONGO_INITDB_ROOT_USERNAME=workspacedbusr
+
+    # monitoring:
+    #     image: "netdata/netdata:latest"
+    #     hostname: "workspace-monitor"
+    #     ports:
+    #         - "19999:19999"
+    #     volumes:
+    #         - /sys:/host/sys
+    #         - /etc/os-release
+    #         - netdataconfig:/etc/netdata
+    #         - netdatalib:/var/lib/netdata
+    #         - netdatacache:/var/cache/netdata
+    #         - /etc/passwd:/host/etc/passwd
+    #         - /etc/group:/host/etc/group
+    #         - /proc:/host/proc
+
+    linnea:
+        image: "registry.workspace.pm/workspace/linnea:latest"
+        hostname: "workspace-linnea"
+        ports:
+            - "7010:80"
+        environment:
+            - LICENSEES=https://{0}.workspace.local
+            - WORKSPACE_DB_CONNECTIONSTRING=mongodb://workspacedbusr:OyDaYglYSIoUnDylIcAte@workspace-mongo:27017
+            - WORKSPACE_MASTERPASSWORD=M5RA!DfIq4xD3ebNGeN5Y3ziRKxAyN9B
+        depends_on:
+            - mongo
+
+    iris:
+        image: "registry.workspace.pm/workspace/iris:latest"
+        hostname: "workspace-iris"
+        ports:
+            - "7005:80"
+        environment:
+            - AUTH_DB_CONNECTIONSTRING=mongodb://workspacedbusr:OyDaYglYSIoUnDylIcAte@workspace-mongo:27017
+            - AUTH_DOMAIN=workspace.local
+            - AUTH_DOMAIN_PORT=workspace.local
+            - GOOGLE_REDIRECT=https://auth.workspace.local/gcallback
+        depends_on:
+            - mongo
+
+    serverside:
+        image: "registry.workspace.pm/workspace/serverside:latest"
+        hostname: "workspace"
+        ports:
+            - "7001:80"
+        environment:
+            - WORKSPACE_AUTH_SERVER=https://auth.workspace.local
+            - WORKSPACE_DB_CONNECTIONSTRING=mongodb://workspacedbusr:OyDaYglYSIoUnDylIcAte@workspace-mongo:27017
+            - WORKSPACE_DOMAIN=workspace.local
+            - WORKSPACE_ENCRYPTION_KEY=kwjnerkjwenfsdfnkjdsnfasbdlflasb
+        volumes:
+            - tenantdata:/app/wwwroot/tenantdata/
+        depends_on:
+            - mongo
+            - iris
+    
+    reverseproxy:
+        image: "nginx:latest"
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ./nginx/public.crt:/var/lib/wsdata/nginx/public.crt
+            - ./nginx/private.key:/var/lib/wsdata/nginx/private.key
+        ports:
+            - 80:80
+            - 443:443
+
+volumes:
+    mongo-db:
+    mongo-config:
+    netdataconfig:
+    netdatalib:
+    netdatacache:
+    tenantdata:
