@@ -2,20 +2,8 @@
 ```openssl req -subj "/commonName=*.workspace.local/" -x509 -nodes -days 730 -newkey rsa:2048 -keyout ./nginx/private.key -out ./nginx/public.crt```
 
 # Anpassung der Konfiguration
-## docker-compose.yml
+## production.yml
 
-**Zugangsdaten für Datenbank:**\
-Zeile 11 und 12: Benutzername und Passwort
-Übernahme in die Zeilen 36, 47, 61
-
-**Ziel-Domain ändern:**\
-Zeilen 35, 48-50, 60, 62
-
-**Encryptionkey setzen:**\
-Zeile 63
-
-**Wenn Hostsystem Linux und Monitoring gewünscht:**\
-Zeilen 14 - 27 einkommentieren
 
 ## nginx/nginx.conf
 **Ziel-Domain ändern:**\
@@ -30,5 +18,8 @@ Benutzername: Siehe Aktivierungsmail\
 Kennwort: Siehe Aktivierungsmail
 
 # Start der Umgebung
-``docker-compose -p "prod" up -d``\
--p "prod" steht hierbei für den Umgebungsnamen
+``docker-compose --env-file production.env -p "prod" up -d``
+
+# Hinweise für parallele Umgebungen
+-p "prod" steht hierbei für den Umgebungsnamen\
+In der *production.env* werden die Laufzeitvariablen gesetzt. Es ist möglich eine getrennte Konfiguration (z.B. für ein Testsystem: testsystem.env) zu verwenden.

@@ -2,14 +2,14 @@ services:
     mongo:
         image: "mongo:latest"
         hostname: "workspace-mongo"
-        ports:
-            - "27017:27017"
+        expose:
+            - "27017"
         volumes:
             - mongo-db:/data/db
             - mongo-config:/data/configdb
         environment:
-            - MONGO_INITDB_ROOT_PASSWORD=OyDaYglYSIoUnDylIcAte
-            - MONGO_INITDB_ROOT_USERNAME=workspacedbusr
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
 
     # monitoring:
     #     image: "netdata/netdata:latest"
@@ -29,43 +29,48 @@ services:
     linnea:
         image: "registry.workspace.pm/workspace/linnea:latest"
         hostname: "workspace-linnea"
-        ports:
-            - "7010:80"
+        expose:
+            - "80"
         environment:
-            - LICENSEES=https://{0}.workspace.local
-            - WORKSPACE_DB_CONNECTIONSTRING=mongodb://workspacedbusr:OyDaYglYSIoUnDylIcAte@workspace-mongo:27017
-            - WORKSPACE_MASTERPASSWORD=M5RA!DfIq4xD3ebNGeN5Y3ziRKxAyN9B
+            - LICENSEES=https://{0}.{$DOMAIN}
+            - WORKSPACE_DB_CONNECTIONSTRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@workspace-mongo:27017
+            - WORKSPACE_MASTERPASSWORD=${MASTERPASSWORD}
         depends_on:
             - mongo
+        links:
+            - "mongo:workspace-mongo"
 
     iris:
         image: "registry.workspace.pm/workspace/iris:latest"
         hostname: "workspace-iris"
-        ports:
-            - "7005:80"
+        expose:
+            - "80"
         environment:
-            - AUTH_DB_CONNECTIONSTRING=mongodb://workspacedbusr:OyDaYglYSIoUnDylIcAte@workspace-mongo:27017
-            - AUTH_DOMAIN=workspace.local
-            - AUTH_DOMAIN_PORT=workspace.local
-            - GOOGLE_REDIRECT=https://auth.workspace.local/gcallback
+            - AUTH_DB_CONNECTIONSTRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@workspace-mongo:27017
+            - AUTH_DOMAIN=${AUTH_DOMAIN}
+            - AUTH_DOMAIN_PORT=${AUTH_DOMAIN_PORT}
+            - GOOGLE_REDIRECT=https://auth.${AUTH_DOMAIN_PORT}/gcallback
         depends_on:
             - mongo
+        links:
+            - "mongo:workspace-mongo"
 
     serverside:
         image: "registry.workspace.pm/workspace/serverside:latest"
         hostname: "workspace"
-        ports:
-            - "7001:80"
+        expose:
+            - "80"
         environment:
-            - WORKSPACE_AUTH_SERVER=https://auth.workspace.local
+            - WORKSPACE_AUTH_SERVER=https://auth.${AUTH_DOMAIN_PORT}
             - WORKSPACE_DB_CONNECTIONSTRING=mongodb://workspacedbusr:OyDaYglYSIoUnDylIcAte@workspace-mongo:27017
-            - WORKSPACE_DOMAIN=workspace.local
-            - WORKSPACE_ENCRYPTION_KEY=kwjnerkjwenfsdfnkjdsnfasbdlflasb
+            - WORKSPACE_DOMAIN={$DOMAIN}
+            - WORKSPACE_ENCRYPTION_KEY=${ENCRYPTIONKEY}
         volumes:
             - tenantdata:/app/wwwroot/tenantdata/
         depends_on:
             - mongo
-            - iris
+        links:
+            - "mongo:workspace-mongo"
     
     reverseproxy:
         image: "nginx:latest"
@@ -74,8 +79,12 @@ services:
             - ./nginx/public.crt:/var/lib/wsdata/nginx/public.crt
             - ./nginx/private.key:/var/lib/wsdata/nginx/private.key
         ports:
-            - 80:80
-            - 443:443
+            - ${PORT_HTTP}:80
+            - ${PORT_HTTPS}:443
+        links:
+            - "linnea:workspace-linnea"
+            - "iris:workspace-iris"
+            - "serverside:workspace"
 
 volumes:
     mongo-db:
