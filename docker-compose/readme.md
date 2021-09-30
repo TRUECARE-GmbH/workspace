@@ -30,4 +30,5 @@ Benutzername: Siehe Aktivierungsmail\
 Kennwort: Siehe Aktivierungsmail
 
 # Start der Umgebung
-``docker-compose up -d``
+``docker-compose -p "prod" up -d``\
+-p "prod" steht hierbei für den Umgebungsnamen
