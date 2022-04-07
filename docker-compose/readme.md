@@ -2,8 +2,8 @@
 ```openssl req -subj "/commonName=*.workspace.local/" -x509 -nodes -days 730 -newkey rsa:2048 -keyout ./nginx/private.key -out ./nginx/public.crt```
 
 # Anpassung der Konfiguration
-## production.yml
-
+## production.env
+Anpassung je nach Bedarf (Ports, Domains, ...), EncryptionKey hat eine feste Länge
 
 ## nginx/nginx.conf
 **Ziel-Domain ändern:**\
