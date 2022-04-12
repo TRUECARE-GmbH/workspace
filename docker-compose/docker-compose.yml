@@ -49,7 +49,9 @@ services:
             - AUTH_DB_CONNECTIONSTRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@workspace-mongo:27017
             - AUTH_DOMAIN=${AUTH_DOMAIN}
             - AUTH_DOMAIN_PORT=${AUTH_DOMAIN_PORT}
-            - GOOGLE_REDIRECT=https://auth.${AUTH_DOMAIN_PORT}/gcallback
+            - AUTH_AUTHDOMAIN=${AUTH_AUTHDOMAIN}
+            - ENCRYPTION_KEY=${ENCRYPTIONKEY}
+            - SCHEME=${SCHEME}
         depends_on:
             - mongo
         links:
@@ -62,7 +64,7 @@ services:
             - "80"
         environment:
             - WORKSPACE_AUTH_SERVER=https://auth.${AUTH_DOMAIN_PORT}
-            - WORKSPACE_DB_CONNECTIONSTRING=mongodb://workspacedbusr:OyDaYglYSIoUnDylIcAte@workspace-mongo:27017
+            - WORKSPACE_DB_CONNECTIONSTRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@workspace-mongo:27017
             - WORKSPACE_DOMAIN={$DOMAIN}
             - WORKSPACE_ENCRYPTION_KEY=${ENCRYPTIONKEY}
         volumes:

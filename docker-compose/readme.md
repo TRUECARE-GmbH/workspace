@@ -3,7 +3,8 @@
 
 # Anpassung der Konfiguration
 ## production.env
-Anpassung je nach Bedarf (Ports, Domains, ...), EncryptionKey hat eine feste Länge
+Anpassung je nach Bedarf (Ports, Domains, ...)\
+EncryptionKey hat eine feste Länge (32 Zeichen, alphanummerisch ohne Sonderzeichen)
 
 ## nginx/nginx.conf
 **Ziel-Domain ändern:**\
